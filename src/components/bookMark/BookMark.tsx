@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import BookMarkInput from "./BookMarkInput";
 import BookmarkSelect from "./BookMarkSelect";
 import BookMarkBtn from "./BookMarksBtn";
