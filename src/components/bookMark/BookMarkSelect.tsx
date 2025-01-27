@@ -67,15 +67,6 @@ const BookmarkSelect = ({
           />
         </>
       ) : (
-        // <FolderTreeStructure
-        //   openFolderId={openFolderId}
-        //   setOpenFolderId={setOpenFolderId}
-        //   edited={edited}
-        //   folders={folders}
-        //   setFolders={setFolders}
-        //   selectedFolderId={selectedFolderId}
-        //   setSelectedFolderId={setSelectedFolderId}
-        // />
         <div className='flex flex-col gap-2'>
           <h4 className='text-sm font-medium mt-4'>Folder</h4>
           <Popover open={openPopover} onOpenChange={setOpenPopover}>
