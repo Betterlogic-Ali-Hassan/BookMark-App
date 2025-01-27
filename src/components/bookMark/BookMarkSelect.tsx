@@ -71,7 +71,7 @@ const BookmarkSelect = ({
         <div className='flex flex-col gap-2'>
           <h4 className='text-sm font-medium mt-4'>Folder</h4>
           <Popover open={openPopover} onOpenChange={setOpenPopover}>
-            <PopoverTrigger className='w-full mb-1 outline-none focus:outline-none ring-0 flex h-[44px] px-4 text-sm items-center justify-between rounded-sm border border-input bg-background   placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1'>
+            <PopoverTrigger className='w-full mb-1 outline-none focus:outline-none ring-0 flex h-[44px] px-4 text-sm items-center justify-between rounded-sm border border-[#ccc] bg-background   placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1'>
               {selected}
               <span>
                 <ChevronDown size={20} className='text-muted-foreground' />

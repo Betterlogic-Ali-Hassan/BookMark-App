@@ -177,7 +177,7 @@ export function More({
   };
 
   return (
-    <div className='flex max-h-[350px] overflow-y-auto w-full scroll-bar flex-col gap-2 border bg-background py-3 px-2 mt-6 mb-4 rounded-md'>
+    <div className='flex max-h-[350px] overflow-y-auto w-full scroll-bar flex-col gap-2 border border-[#ccc] bg-background py-3 px-2 mt-6 mb-4 rounded-md'>
       <nav className='space-y-1'>
         {folders.map((folder) => (
           <NavItem
