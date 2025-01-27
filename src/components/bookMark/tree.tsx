@@ -100,7 +100,7 @@ function TreeNode({
   onUpdateName,
 }: TreeNodeProps) {
   const hasChildren = node.children && node.children.length > 0;
-  const [isEditing, setIsEditing] = React.useState(node.isEditing || false);
+  const [isEditing, setIsEditing] = React.useState(node.isEditing);
   const [newName, setNewName] = React.useState(node.name);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
