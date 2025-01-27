@@ -41,7 +41,7 @@ function NavItem({
 
   const handleClick = () => {
     onSelect(folder.id);
-    setIsOpen(false);
+    setIsOpen(!isOpen);
   };
 
   const handleRename = (e: React.FormEvent) => {
