@@ -38,15 +38,10 @@ function NavItem({
   const [isOpen, setIsOpen] = React.useState(folder.id === selectedFolderId);
   const [isEditing, setIsEditing] = React.useState(edited);
   const [newName, setNewName] = React.useState(folder.name);
-  React.useEffect(() => {
-    if (folder.id === selectedFolderId) {
-      setIsOpen(true);
-    }
-  }, [folder.id, selectedFolderId]);
 
   const handleClick = () => {
     onSelect(folder.id);
-    setIsOpen((prev) => !prev);
+    setIsOpen(false);
   };
 
   const handleRename = (e: React.FormEvent) => {
