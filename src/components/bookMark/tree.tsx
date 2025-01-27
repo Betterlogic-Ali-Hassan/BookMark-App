@@ -93,13 +93,14 @@ function TreeNode({
           <button
             className={cn(
               "flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors cursor-pointer hover:bg-accent/50 w-full",
-              selectedId === node.id && "bg-accent text-accent-foreground"
+              selectedId === node.id && "bg-accent text-accent-foreground",
+              node.children && node.children?.length > 0
+                ? "justify-between"
+                : "justify-start"
             )}
             onClick={handleClick}
           >
-            <div className='flex items-center gap-3'>
-              {" "}
-              {!hasChildren && <span className='w-4' />}
+            <div className='flex items-center gap-3 flex-grow'>
               {node.isOpen ? (
                 <FcOpenedFolder size={18} />
               ) : (
@@ -116,7 +117,7 @@ function TreeNode({
           </button>
         </CollapsibleTrigger>
         {hasChildren && (
-          <CollapsibleContent className='ml-6 mt-2 flex-grow '>
+          <CollapsibleContent className='ml-6 mt-1 flex-grow '>
             {node.children?.map((child) => (
               <TreeNode
                 key={child.id}
