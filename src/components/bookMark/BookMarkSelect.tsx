@@ -11,11 +11,7 @@ import { Input } from "@/components/ui/input";
 import { bookmarkData } from "../../../constant/BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
 import { FolderTreeStructure } from "./FolderTreeStructure";
-interface Folder {
-  id: string;
-  name: string;
-  subfolders: Folder[];
-}
+import { Folder } from "../../../types/Bookmark";
 interface TBookmarkProps {
   selectChange: (value: string) => void;
   selected: string;
