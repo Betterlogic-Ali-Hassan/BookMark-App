@@ -25,8 +25,8 @@ interface NavItemProps {
   selectedFolderId: string;
   onRename: (folderId: string, newName: string) => void;
   edited: boolean;
-  openFolderId: string | null;
-  setOpenFolderId: (id: string | null) => void;
+  openFolderId: boolean;
+  setOpenFolderId: (id: boolean) => void;
 }
 
 function NavItem({
@@ -41,10 +41,10 @@ function NavItem({
 }: NavItemProps) {
   const [isEditing, setIsEditing] = React.useState(edited);
   const [newName, setNewName] = React.useState(folder.name);
-  const isOpen = openFolderId === folder.id;
+
   const handleClick = () => {
-    onSelect(folder.id);
-    setOpenFolderId(isOpen ? null : folder.id);
+    setOpenFolderId(!openFolderId);
+    onSelect(folder.id); // Always select the folder when clicked
   };
 
   const handleRename = (e: React.FormEvent) => {
@@ -54,11 +54,12 @@ function NavItem({
   };
 
   return (
-    <Collapsible open={isOpen}>
-      <CollapsibleTrigger className='w-full' onClick={handleClick}>
+    <Collapsible open={openFolderId}>
+      <CollapsibleTrigger asChild>
         <div
+          onClick={handleClick}
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors cursor-pointer",
             selectedFolderId === folder.id
               ? "bg-accent text-accent-foreground"
               : "hover:bg-accent/50",
@@ -66,7 +67,11 @@ function NavItem({
           )}
         >
           <div className='flex items-center gap-3 flex-grow'>
-            {isOpen ? <FcOpenedFolder size={18} /> : <FcFolder size={18} />}
+            {openFolderId ? (
+              <FcOpenedFolder size={18} />
+            ) : (
+              <FcFolder size={18} />
+            )}
             {isEditing ? (
               <form onSubmit={handleRename} className='flex-grow'>
                 <Input
@@ -88,32 +93,34 @@ function NavItem({
               <ChevronRight
                 className={cn(
                   "h-4 w-4 transition-transform",
-                  isOpen && "rotate-90"
+                  openFolderId && "rotate-90"
                 )}
               />
             )}
           </div>
         </div>
       </CollapsibleTrigger>
-      {folder.subfolders.length > 0 && (
-        <CollapsibleContent>
-          <div className='ml-6 mt-1 space-y-1'>
-            {folder.subfolders.map((subfolder) => (
-              <NavItem
-                openFolderId={openFolderId}
-                setOpenFolderId={setOpenFolderId}
-                edited={edited}
-                key={subfolder.id}
-                folder={subfolder}
-                onSelect={onSelect}
-                onAddFolder={onAddFolder}
-                selectedFolderId={selectedFolderId}
-                onRename={onRename}
-              />
-            ))}
-          </div>
-        </CollapsibleContent>
-      )}
+
+      <CollapsibleContent>
+        <div
+          className='ml-6 mt-1 space-y-1'
+          onClick={(e) => e.stopPropagation()}
+        >
+          {folder.subfolders.map((subfolder) => (
+            <NavItem
+              openFolderId={openFolderId}
+              setOpenFolderId={setOpenFolderId}
+              edited={edited}
+              key={subfolder.id}
+              folder={subfolder}
+              onSelect={onSelect}
+              onAddFolder={onAddFolder}
+              selectedFolderId={selectedFolderId}
+              onRename={onRename}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
     </Collapsible>
   );
 }
@@ -124,8 +131,8 @@ interface FolderTreeStructureProps {
   selectedFolderId: string;
   setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
   edited: boolean;
-  openFolderId: string | null;
-  setOpenFolderId: (id: string | null) => void;
+  openFolderId: boolean;
+  setOpenFolderId: (id: boolean) => void;
 }
 
 export function FolderTreeStructure({

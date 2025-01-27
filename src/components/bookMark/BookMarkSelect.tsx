@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import {
@@ -10,8 +8,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { bookmarkData } from "../../../constant/BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
-import { FolderTreeStructure } from "./FolderTreeStructure";
-import { Folder } from "../../../types/Bookmark";
+import { cn } from "@/lib/utils";
+import { FolderTree } from "./tree";
+interface TreeNode {
+  id: string;
+  name: string;
+  children?: TreeNode[];
+}
 interface TBookmarkProps {
   selectChange: (value: string) => void;
   selected: string;
@@ -21,13 +24,10 @@ interface TBookmarkProps {
   setOpenPopover: React.Dispatch<React.SetStateAction<boolean>>;
   openPopover: boolean;
   moreFolder: boolean;
-  folders: Folder[];
-  setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
-  selectedFolderId: string;
-  setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
-  edited: boolean;
-  openFolderId: string | null;
-  setOpenFolderId: (id: string | null) => void;
+  setSelectedId: (id: string | null) => void;
+  selectedId: string | null;
+  data: TreeNode[];
+  setData: (data: TreeNode[]) => void;
 }
 
 const BookmarkSelect = ({
@@ -39,15 +39,13 @@ const BookmarkSelect = ({
   setOpenPopover,
   openPopover,
   moreFolder,
-  folders,
-  setFolders,
-  selectedFolderId,
-  setSelectedFolderId,
-  edited,
-  openFolderId,
-  setOpenFolderId,
+  selectedId,
+  setSelectedId,
+  setData,
+  data,
 }: TBookmarkProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const filterData = bookmarkData.filter((bookmark) =>
     bookmark.toLowerCase().includes(searchTerm.toLowerCase())
@@ -60,16 +58,24 @@ const BookmarkSelect = ({
   return (
     <div>
       {moreFolder ? (
-        <FolderTreeStructure
-          openFolderId={openFolderId}
-          setOpenFolderId={setOpenFolderId}
-          edited={edited}
-          folders={folders}
-          setFolders={setFolders}
-          selectedFolderId={selectedFolderId}
-          setSelectedFolderId={setSelectedFolderId}
-        />
+        <>
+          <FolderTree
+            data={data}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            setData={setData}
+          />
+        </>
       ) : (
+        // <FolderTreeStructure
+        //   openFolderId={openFolderId}
+        //   setOpenFolderId={setOpenFolderId}
+        //   edited={edited}
+        //   folders={folders}
+        //   setFolders={setFolders}
+        //   selectedFolderId={selectedFolderId}
+        //   setSelectedFolderId={setSelectedFolderId}
+        // />
         <div className='flex flex-col gap-2'>
           <h4 className='text-sm font-medium mt-4'>Folder</h4>
           <Popover open={openPopover} onOpenChange={setOpenPopover}>
@@ -143,9 +149,13 @@ const BookmarkSelect = ({
             <span
               key={i}
               onClick={() => {
+                setActiveBookmark(bookmark);
                 selectChange(bookmark);
               }}
-              className='p-2 px-3 border hover:bg-[#E5E5E5] rounded-full text-xs font-medium cursor-pointer bg-[#f2f2f2]'
+              className={cn(
+                "p-2 px-3  hover:bg-[#E5E5E5] rounded-full text-xs font-medium cursor-pointer bg-[#f2f2f2] border-2 border-transparent ",
+                activeBookmark === bookmark && " border-[#ccc] border-dashed"
+              )}
             >
               {bookmark}
             </span>

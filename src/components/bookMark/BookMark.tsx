@@ -2,27 +2,27 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import type { Folder, BookMarkProps } from "../../../types/Bookmark";
 import BookMarkInput from "./BookMarkInput";
 import BookmarkSelect from "./BookMarkSelect";
 import Header from "./Header";
 import Footer from "./Footer";
 import { initialFoldersData } from "../../../constant/foldersData";
-
-const BookMark: React.FC<BookMarkProps> = ({
-  initialFolders = initialFoldersData,
-}) => {
+interface TreeNode {
+  id: string;
+  name: string;
+  children?: TreeNode[];
+  isOpen?: boolean;
+}
+const BookMark: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>("Bookmark bar");
   const [path, setPath] = useState("");
   const [openPopover, setOpenPopover] = useState(false);
   const [moreFolder, setMoreFolder] = useState(false);
   const [removeBookMark, setRemoveBookMark] = useState(false);
-  const [edited, setEdited] = useState(false);
-  const [folders, setFolders] = useState<Folder[]>(initialFolders);
-  const [selectedFolderId, setSelectedFolderId] = useState<string>("1");
-  const [openFolderId, setOpenFolderId] = useState<string | null>(null); // Track open folder
-
+  const [openFolderId, setOpenFolderId] = useState(false); // Track open folder
+  const [data, setData] = React.useState<TreeNode[]>(initialFoldersData);
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const handleBookmarks = useCallback((value: string) => {
     setBookmarks((prev) => (!prev.includes(value) ? [...prev, value] : prev));
   }, []);
@@ -39,49 +39,46 @@ const BookMark: React.FC<BookMarkProps> = ({
     });
   }, []);
 
-  const handleAddFolder = useCallback(() => {
-    const newFolder: Folder = {
-      id: Date.now().toString(),
-      name: "New Folder",
-      subfolders: [],
-    };
-
-    setFolders((prevFolders) => {
-      const addFolderRecursively = (folderList: Folder[]): Folder[] => {
-        return folderList.map((folder) => {
-          if (folder.id === selectedFolderId) {
-            return { ...folder, subfolders: [...folder.subfolders, newFolder] };
-          } else if (folder.subfolders.length > 0) {
-            return {
-              ...folder,
-              subfolders: addFolderRecursively(folder.subfolders),
-            };
-          }
-          return folder;
-        });
-      };
-
-      return addFolderRecursively(prevFolders);
-    });
-
-    setEdited(true); // Show input if applicable
-    setOpenFolderId(selectedFolderId); // Automatically open the folder
-  }, [selectedFolderId]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!(event.target as HTMLElement).closest(".folder-input")) {
-        setEdited(false);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
   useEffect(() => {
     setPath(window.location.href);
   }, []);
+  const addNewFolder = () => {
+    const name = prompt("Enter folder name:");
+    if (!name) return;
+
+    const newFolder: TreeNode = {
+      id: Math.random().toString(36).substr(2, 9),
+      name,
+      children: [],
+      isOpen: false,
+    };
+
+    if (!selectedId) {
+      setData([...data, newFolder]);
+      return;
+    }
+
+    const addToChildren = (nodes: TreeNode[]): TreeNode[] => {
+      return nodes.map((node) => {
+        if (node.id === selectedId) {
+          return {
+            ...node,
+            children: [...(node.children || []), newFolder],
+            isOpen: true,
+          };
+        }
+        if (node.children) {
+          return {
+            ...node,
+            children: addToChildren(node.children),
+          };
+        }
+        return node;
+      });
+    };
+
+    setData(addToChildren(data));
+  };
 
   return (
     <div
@@ -103,11 +100,10 @@ const BookMark: React.FC<BookMarkProps> = ({
           )}
           <BookmarkSelect
             {...{
-              edited,
-              folders,
-              setFolders,
-              selectedFolderId,
-              setSelectedFolderId,
+              data,
+              selectedId,
+              setSelectedId,
+              setData,
               openPopover,
               setOpenPopover,
               selected,
@@ -123,7 +119,7 @@ const BookMark: React.FC<BookMarkProps> = ({
         </div>
         <Footer
           moreFolder={moreFolder}
-          handleAddFolder={handleAddFolder}
+          handleAddFolder={addNewFolder}
           setMoreFolder={setMoreFolder}
           handleRemove={handleRemove}
         />

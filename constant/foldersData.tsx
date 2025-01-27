@@ -1,70 +1,28 @@
-export interface Folder {
+export interface TreeNode {
   id: string;
   name: string;
-  subfolders: Folder[];
+  children?: TreeNode[];
+  isOpen?: boolean;
 }
 
-export const initialFoldersData: Folder[] = [
+export const initialFoldersData: TreeNode[] = [
   {
     id: "1",
     name: "Projects",
-    subfolders: [
-      {
-        id: "1-1",
-        name: "Office",
-        subfolders: [],
-      },
-      {
-        id: "1-2",
-        name: "Social",
-        subfolders: [],
-      },
-      {
-        id: "1-3",
-        name: "Others",
-        subfolders: [],
-      },
+    children: [
+      { id: "2", name: "Office" },
+      { id: "3", name: "Social" },
+      { id: "4", name: "Others" },
     ],
+    isOpen: false,
   },
-  { id: "2", name: "Backorder", subfolders: [] },
-  { id: "3", name: "DMCA", subfolders: [] },
-  { id: "4", name: "SEO", subfolders: [] },
+  { id: "5", name: "Backorder" },
+  { id: "6", name: "DMCA" },
+  { id: "7", name: "SEO" },
   {
-    id: "5",
+    id: "8",
     name: "IMP",
-    subfolders: [
-      {
-        id: "5-1",
-        name: "Payment Gateway",
-        subfolders: [],
-      },
-      {
-        id: "5-2",
-        name: "Sheet",
-        subfolders: [],
-      },
-      {
-        id: "5-3",
-        name: "Nulled Scripts sites",
-        subfolders: [],
-      },
-      {
-        id: "5-4",
-        name: "AUG Copycat",
-        subfolders: [],
-      },
-      {
-        id: "5-5",
-        name: "Affiliate project",
-        subfolders: [],
-      },
-      {
-        id: "5-6",
-        name: "Apartments",
-        subfolders: [],
-      },
-    ],
+    children: [],
+    isOpen: false,
   },
-  { id: "6", name: "Freeware Project", subfolders: [] },
-  { id: "7", name: "Affiliate project", subfolders: [] },
 ];
