@@ -17,6 +17,7 @@ const BookMark = () => {
   const [openPopover, setOpenPopover] = useState(false);
   const [moreFolder, setMoreFolder] = useState(false);
   const [removeBookMark, setRemoveBookMark] = useState(false);
+  const [edited, setEdited] = useState(false);
 
   const [folders, setFolders] = useState<Folder[]>([
     { id: "1", name: "Root Folder", subfolders: [] },
@@ -60,7 +61,25 @@ const BookMark = () => {
     };
 
     setFolders(addFolderRecursively(folders));
+    setEdited(true);
   };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Reset `edited` if clicking outside input fields or specific areas
+      if (!target.closest(".folder-input")) {
+        setEdited(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    // Cleanup event listener on unmount
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     setPath(window.location.href);
   }, [path]);
@@ -97,6 +116,7 @@ const BookMark = () => {
           )}
 
           <BookmarkSelect
+            edited={edited}
             folders={folders}
             setFolders={setFolders}
             selectedFolderId={selectedFolderId}

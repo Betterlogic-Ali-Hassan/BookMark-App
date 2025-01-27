@@ -24,6 +24,7 @@ interface NavItemProps {
   onAddFolder: (parentId: string) => void;
   selectedFolderId: string;
   onRename: (folderId: string, newName: string) => void;
+  edited: boolean;
 }
 
 function NavItem({
@@ -32,13 +33,12 @@ function NavItem({
   onAddFolder,
   selectedFolderId,
   onRename,
+  edited,
 }: NavItemProps) {
   const [isOpen, setIsOpen] = React.useState(
     folder.id === selectedFolderId ? true : false
   );
-  const [isEditing, setIsEditing] = React.useState(
-    folder.id === "1" ? false : true
-  );
+  const [isEditing, setIsEditing] = React.useState(edited);
   const [newName, setNewName] = React.useState(folder.name);
 
   const handleClick = () => {
@@ -99,6 +99,7 @@ function NavItem({
           <div className='ml-6 mt-1 space-y-1'>
             {folder.subfolders.map((subfolder) => (
               <NavItem
+                edited={edited}
                 key={subfolder.id}
                 folder={subfolder}
                 onSelect={onSelect}
@@ -119,6 +120,7 @@ interface MoreProps {
   setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
   selectedFolderId: string;
   setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
+  edited: boolean;
 }
 
 export function More({
@@ -126,6 +128,7 @@ export function More({
   setFolders,
   selectedFolderId,
   setSelectedFolderId,
+  edited,
 }: MoreProps) {
   const handleSelect = (folderId: string) => {
     setSelectedFolderId(folderId);
@@ -178,6 +181,7 @@ export function More({
       <nav className='space-y-1'>
         {folders.map((folder) => (
           <NavItem
+            edited={edited}
             key={folder.id}
             folder={folder}
             onSelect={handleSelect}
