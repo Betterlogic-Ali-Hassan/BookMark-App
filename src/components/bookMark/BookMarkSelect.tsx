@@ -8,9 +8,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { bookmarkData } from "./BookMarkData";
+import { bookmarkData } from "../../../constant/BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
-import { More } from "./More";
+import { FolderTreeStructure } from "./FolderTreeStructure";
 interface Folder {
   id: string;
   name: string;
@@ -60,7 +60,7 @@ const BookmarkSelect = ({
   return (
     <div>
       {moreFolder ? (
-        <More
+        <FolderTreeStructure
           edited={edited}
           folders={folders}
           setFolders={setFolders}

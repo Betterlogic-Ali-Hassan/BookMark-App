@@ -115,7 +115,7 @@ function NavItem({
   );
 }
 
-interface MoreProps {
+interface FolderTreeStructureProps {
   folders: Folder[];
   setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
   selectedFolderId: string;
@@ -123,13 +123,13 @@ interface MoreProps {
   edited: boolean;
 }
 
-export function More({
+export function FolderTreeStructure({
   folders,
   setFolders,
   selectedFolderId,
   setSelectedFolderId,
   edited,
-}: MoreProps) {
+}: FolderTreeStructureProps) {
   const handleSelect = (folderId: string) => {
     setSelectedFolderId(folderId);
   };
