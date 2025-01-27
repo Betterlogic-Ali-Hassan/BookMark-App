@@ -12,6 +12,7 @@ interface TreeNode {
   name: string;
   children?: TreeNode[];
   isOpen?: boolean;
+  isEditing?: boolean;
 }
 const BookMark: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
@@ -43,14 +44,12 @@ const BookMark: React.FC = () => {
     setPath(window.location.href);
   }, []);
   const addNewFolder = () => {
-    const name = prompt("Enter folder name:");
-    if (!name) return;
-
     const newFolder: TreeNode = {
       id: Math.random().toString(36).substr(2, 9),
-      name,
+      name: "New Folder",
       children: [],
       isOpen: false,
+      isEditing: true,
     };
 
     if (!selectedId) {
