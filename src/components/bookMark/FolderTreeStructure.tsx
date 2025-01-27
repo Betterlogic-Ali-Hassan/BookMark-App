@@ -25,6 +25,8 @@ interface NavItemProps {
   selectedFolderId: string;
   onRename: (folderId: string, newName: string) => void;
   edited: boolean;
+  openFolderId: string | null;
+  setOpenFolderId: (id: string | null) => void;
 }
 
 function NavItem({
@@ -34,14 +36,15 @@ function NavItem({
   selectedFolderId,
   onRename,
   edited,
+  openFolderId,
+  setOpenFolderId,
 }: NavItemProps) {
-  const [isOpen, setIsOpen] = React.useState(folder.id === selectedFolderId);
   const [isEditing, setIsEditing] = React.useState(edited);
   const [newName, setNewName] = React.useState(folder.name);
-
+  const isOpen = openFolderId === folder.id;
   const handleClick = () => {
     onSelect(folder.id);
-    setIsOpen(!isOpen);
+    setOpenFolderId(isOpen ? null : folder.id);
   };
 
   const handleRename = (e: React.FormEvent) => {
@@ -97,6 +100,8 @@ function NavItem({
           <div className='ml-6 mt-1 space-y-1'>
             {folder.subfolders.map((subfolder) => (
               <NavItem
+                openFolderId={openFolderId}
+                setOpenFolderId={setOpenFolderId}
                 edited={edited}
                 key={subfolder.id}
                 folder={subfolder}
@@ -119,6 +124,8 @@ interface FolderTreeStructureProps {
   selectedFolderId: string;
   setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
   edited: boolean;
+  openFolderId: string | null;
+  setOpenFolderId: (id: string | null) => void;
 }
 
 export function FolderTreeStructure({
@@ -127,6 +134,8 @@ export function FolderTreeStructure({
   selectedFolderId,
   setSelectedFolderId,
   edited,
+  openFolderId,
+  setOpenFolderId,
 }: FolderTreeStructureProps) {
   const handleSelect = (folderId: string) => {
     setSelectedFolderId(folderId);
@@ -158,10 +167,8 @@ export function FolderTreeStructure({
 
     setFolders(addFolderRecursively(folders));
 
-    // Automatically open the parent folder if it was closed
-    if (parentId === selectedFolderId) {
-      setSelectedFolderId(parentId); // Ensure parent is selected
-    }
+    // Open and select the parent folder
+    setSelectedFolderId(parentId);
   };
 
   const handleRename = (folderId: string, newName: string) => {
@@ -187,6 +194,8 @@ export function FolderTreeStructure({
       <nav className='space-y-1'>
         {folders.map((folder) => (
           <NavItem
+            openFolderId={openFolderId}
+            setOpenFolderId={setOpenFolderId}
             edited={edited}
             key={folder.id}
             folder={folder}

@@ -21,6 +21,7 @@ const BookMark: React.FC<BookMarkProps> = ({
   const [edited, setEdited] = useState(false);
   const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [selectedFolderId, setSelectedFolderId] = useState<string>("1");
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null); // Track open folder
 
   const handleBookmarks = useCallback((value: string) => {
     setBookmarks((prev) => (!prev.includes(value) ? [...prev, value] : prev));
@@ -62,7 +63,9 @@ const BookMark: React.FC<BookMarkProps> = ({
 
       return addFolderRecursively(prevFolders);
     });
-    setEdited(true);
+
+    setEdited(true); // Show input if applicable
+    setOpenFolderId(selectedFolderId); // Automatically open the folder
   }, [selectedFolderId]);
 
   useEffect(() => {
@@ -113,6 +116,8 @@ const BookMark: React.FC<BookMarkProps> = ({
               bookmarks,
               handleRemoveBookMark,
               moreFolder,
+              openFolderId,
+              setOpenFolderId,
             }}
           />
         </div>

@@ -26,6 +26,8 @@ interface TBookmarkProps {
   selectedFolderId: string;
   setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
   edited: boolean;
+  openFolderId: string | null;
+  setOpenFolderId: (id: string | null) => void;
 }
 
 const BookmarkSelect = ({
@@ -42,6 +44,8 @@ const BookmarkSelect = ({
   selectedFolderId,
   setSelectedFolderId,
   edited,
+  openFolderId,
+  setOpenFolderId,
 }: TBookmarkProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -57,6 +61,8 @@ const BookmarkSelect = ({
     <div>
       {moreFolder ? (
         <FolderTreeStructure
+          openFolderId={openFolderId}
+          setOpenFolderId={setOpenFolderId}
           edited={edited}
           folders={folders}
           setFolders={setFolders}
