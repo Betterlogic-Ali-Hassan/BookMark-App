@@ -22,7 +22,11 @@ export const initialFoldersData: TreeNode[] = [
   {
     id: "8",
     name: "IMP",
-    children: [],
+    children: [
+      { id: "5", name: "Projects" },
+      { id: "6", name: "All Projects" },
+      { id: "7", name: "My Projects" },
+    ],
     isOpen: false,
   },
 ];
