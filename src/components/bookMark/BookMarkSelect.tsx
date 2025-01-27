@@ -11,7 +11,11 @@ import { Input } from "@/components/ui/input";
 import { bookmarkData } from "./BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
 import { More } from "./More";
-
+interface Folder {
+  id: string;
+  name: string;
+  subfolders: Folder[];
+}
 interface TBookmarkProps {
   selectChange: (value: string) => void;
   selected: string;
@@ -21,6 +25,10 @@ interface TBookmarkProps {
   setOpenPopover: React.Dispatch<React.SetStateAction<boolean>>;
   openPopover: boolean;
   moreFolder: boolean;
+  folders: Folder[];
+  setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
+  selectedFolderId: string;
+  setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const BookmarkSelect = ({
@@ -32,6 +40,10 @@ const BookmarkSelect = ({
   setOpenPopover,
   openPopover,
   moreFolder,
+  folders,
+  setFolders,
+  selectedFolderId,
+  setSelectedFolderId,
 }: TBookmarkProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -46,7 +58,12 @@ const BookmarkSelect = ({
   return (
     <div>
       {moreFolder ? (
-        <More />
+        <More
+          folders={folders}
+          setFolders={setFolders}
+          selectedFolderId={selectedFolderId}
+          setSelectedFolderId={setSelectedFolderId}
+        />
       ) : (
         <div className='flex flex-col gap-2'>
           <h4 className='text-sm font-medium mt-4'>Folder</h4>
@@ -115,7 +132,7 @@ const BookmarkSelect = ({
           </Popover>
         </div>
       )}
-      <div className='flex items-center gap-2 mb-7 mt-3 flex-wrap'>
+      <div className='flex items-center gap-2 mb-6 mt-3 flex-wrap'>
         {bookmarks &&
           bookmarks.map((bookmark, i) => (
             <span

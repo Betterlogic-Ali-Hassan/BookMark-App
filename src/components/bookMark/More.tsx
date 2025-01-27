@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { FcFolder, FcOpenedFolder } from "react-icons/fc";
-
 import { cn } from "@/lib/utils";
 import {
   Collapsible,
@@ -11,27 +10,46 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronRight } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+
+interface Folder {
+  id: string;
+  name: string;
+  subfolders: Folder[];
+}
+
 interface NavItemProps {
-  label: string;
-  isActive?: boolean;
-  isCollapsible?: boolean;
-  children?: React.ReactNode;
-  isSelected: boolean; // New prop to check if this item is selected
-  onSelect: (label: string) => void; // Function to handle selection
+  folder: Folder;
+  onSelect: (folderId: string) => void;
+  onAddFolder: (parentId: string) => void;
+  selectedFolderId: string;
+  onRename: (folderId: string, newName: string) => void;
 }
 
 function NavItem({
-  label,
-  isCollapsible,
-  children,
-  isSelected,
+  folder,
   onSelect,
+  onAddFolder,
+  selectedFolderId,
+  onRename,
 }: NavItemProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(
+    folder.id === selectedFolderId ? true : false
+  );
+  const [isEditing, setIsEditing] = React.useState(
+    folder.id === "1" ? false : true
+  );
+  const [newName, setNewName] = React.useState(folder.name);
 
   const handleClick = () => {
-    onSelect(label); // Notify parent about selection
-    setIsOpen(!isOpen); // Toggle open state
+    onSelect(folder.id);
+    setIsOpen(!isOpen);
+  };
+
+  const handleRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    onRename(folder.id, newName);
+    setIsEditing(false);
   };
 
   return (
@@ -40,129 +58,135 @@ function NavItem({
         <div
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-            isSelected
-              ? "bg-accent text-accent-foreground" // Selected item styles
+            selectedFolderId === folder.id
+              ? "bg-accent text-accent-foreground"
               : "hover:bg-accent/50",
-            isCollapsible ? "justify-between " : "justify-start"
+            folder.subfolders.length > 0 ? "justify-between" : "justify-start"
           )}
         >
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-3 flex-grow'>
             {isOpen ? <FcOpenedFolder size={18} /> : <FcFolder size={18} />}
-            <span>{label}</span>
+            {isEditing ? (
+              <form onSubmit={handleRename} className='flex-grow'>
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onBlur={() => setIsEditing(false)}
+                  autoFocus
+                  className='h-6 py-0 px-1'
+                />
+              </form>
+            ) : (
+              <span onDoubleClick={() => setIsEditing(true)}>
+                {folder.name}
+              </span>
+            )}
           </div>
-          {isCollapsible && (
-            <ChevronRight
-              className={cn(
-                "h-4 w-4 transition-transform",
-                isOpen && "rotate-90"
-              )}
-            />
-          )}
+          <div className='flex items-center gap-2'>
+            {folder.subfolders.length > 0 && (
+              <ChevronRight
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  isOpen && "rotate-90"
+                )}
+              />
+            )}
+          </div>
         </div>
       </CollapsibleTrigger>
-      {children && <CollapsibleContent>{children}</CollapsibleContent>}
+      {folder.subfolders.length > 0 && (
+        <CollapsibleContent>
+          <div className='ml-6 mt-1 space-y-1'>
+            {folder.subfolders.map((subfolder) => (
+              <NavItem
+                key={subfolder.id}
+                folder={subfolder}
+                onSelect={onSelect}
+                onAddFolder={onAddFolder}
+                selectedFolderId={selectedFolderId}
+                onRename={onRename}
+              />
+            ))}
+          </div>
+        </CollapsibleContent>
+      )}
     </Collapsible>
   );
 }
 
-export function More() {
-  const [selectedItem, setSelectedItem] = React.useState<string | null>(null); // Track the selected item
+interface MoreProps {
+  folders: Folder[];
+  setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
+  selectedFolderId: string;
+  setSelectedFolderId: React.Dispatch<React.SetStateAction<string>>;
+}
 
-  const handleSelect = (label: string) => {
-    setSelectedItem((prev) => (prev === label ? null : label)); // Deselect if clicked again
+export function More({
+  folders,
+  setFolders,
+  selectedFolderId,
+  setSelectedFolderId,
+}: MoreProps) {
+  const handleSelect = (folderId: string) => {
+    setSelectedFolderId(folderId);
+  };
+
+  const handleAddFolder = (parentId: string) => {
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name: "New Folder",
+      subfolders: [],
+    };
+
+    const addFolderRecursively = (folderList: Folder[]): Folder[] => {
+      return folderList.map((folder) => {
+        if (folder.id === parentId) {
+          return { ...folder, subfolders: [...folder.subfolders, newFolder] };
+        } else if (folder.subfolders.length > 0) {
+          return {
+            ...folder,
+            subfolders: addFolderRecursively(folder.subfolders),
+          };
+        }
+        return folder;
+      });
+    };
+
+    setFolders(addFolderRecursively(folders));
+  };
+
+  const handleRename = (folderId: string, newName: string) => {
+    const renameFolderRecursively = (folderList: Folder[]): Folder[] => {
+      return folderList.map((folder) => {
+        if (folder.id === folderId) {
+          return { ...folder, name: newName };
+        } else if (folder.subfolders.length > 0) {
+          return {
+            ...folder,
+            subfolders: renameFolderRecursively(folder.subfolders),
+          };
+        }
+        return folder;
+      });
+    };
+
+    setFolders(renameFolderRecursively(folders));
   };
 
   return (
-    <>
-      <div className='flex max-h-[350px] overflow-y-auto w-full scroll-bar flex-col gap-2 border bg-background py-3 px-2 mt-6 mb-4 rounded-md'>
-        <nav className='space-y-1'>
+    <div className='flex max-h-[350px] overflow-y-auto w-full scroll-bar flex-col gap-2 border bg-background py-3 px-2 mt-6 mb-4 rounded-md'>
+      <nav className='space-y-1'>
+        {folders.map((folder) => (
           <NavItem
-            label='Projects'
-            isCollapsible
-            isSelected={selectedItem === "Projects"}
+            key={folder.id}
+            folder={folder}
             onSelect={handleSelect}
-          >
-            <div className='ml-6 mt-1 space-y-1'>
-              <NavItem
-                label='Office'
-                isSelected={selectedItem === "Office"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Social'
-                isSelected={selectedItem === "Social"}
-                onSelect={handleSelect}
-              />
-            </div>
-          </NavItem>
-
-          <NavItem
-            label='Backorder'
-            isSelected={selectedItem === "Backorder"}
-            onSelect={handleSelect}
+            onAddFolder={handleAddFolder}
+            selectedFolderId={selectedFolderId}
+            onRename={handleRename}
           />
-          <NavItem
-            label='DMCA'
-            isSelected={selectedItem === "DMCA"}
-            onSelect={handleSelect}
-          />
-          <NavItem
-            label='Others'
-            isSelected={selectedItem === "Others"}
-            onSelect={handleSelect}
-          />
-          <NavItem
-            label='SEO'
-            isSelected={selectedItem === "SEO"}
-            onSelect={handleSelect}
-          />
-
-          <NavItem
-            label='IMP'
-            isCollapsible
-            isSelected={selectedItem === "IMP"}
-            onSelect={handleSelect}
-          >
-            <div className='ml-6 mt-1 space-y-1'>
-              <NavItem
-                label='Payment Gateway'
-                isSelected={selectedItem === "Payment Gateway"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Sheet'
-                isSelected={selectedItem === "Sheet"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Nulled Scripts sites'
-                isSelected={selectedItem === "Nulled Scripts sites"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='AUG Copycat'
-                isSelected={selectedItem === "AUG Copycat"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Affiliate project'
-                isSelected={selectedItem === "Affiliate project"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Apartments'
-                isSelected={selectedItem === "Apartments"}
-                onSelect={handleSelect}
-              />
-              <NavItem
-                label='Freeware Project'
-                isSelected={selectedItem === "Freeware Project"}
-                onSelect={handleSelect}
-              />
-            </div>
-          </NavItem>
-        </nav>
-      </div>
-    </>
+        ))}
+      </nav>
+    </div>
   );
 }
