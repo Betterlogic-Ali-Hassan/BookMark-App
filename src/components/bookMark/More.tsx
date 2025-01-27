@@ -57,7 +57,7 @@ function NavItem({
       <CollapsibleTrigger className='w-full' onClick={handleClick}>
         <div
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
             selectedFolderId === folder.id
               ? "bg-accent text-accent-foreground"
               : "hover:bg-accent/50",

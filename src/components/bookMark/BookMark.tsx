@@ -20,7 +20,69 @@ const BookMark = () => {
   const [edited, setEdited] = useState(false);
 
   const [folders, setFolders] = useState<Folder[]>([
-    { id: "1", name: "Root Folder", subfolders: [] },
+    {
+      id: "1",
+      name: "Projects",
+      subfolders: [
+        {
+          id: Date.now().toString(),
+          name: "Office",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Social",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Others",
+          subfolders: [],
+        },
+      ],
+    },
+    { id: "2", name: "Backorder", subfolders: [] },
+    { id: "3", name: "DMCA", subfolders: [] },
+    { id: "4", name: "SEO", subfolders: [] },
+
+    {
+      id: "5",
+      name: "IMP",
+      subfolders: [
+        {
+          id: Date.now().toString(),
+          name: "Payment Gateway",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Sheet",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Nulled Scripts sites",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "AUG Copycat",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Affiliate project",
+          subfolders: [],
+        },
+        {
+          id: Date.now().toString(),
+          name: "Apartments",
+          subfolders: [],
+        },
+      ],
+    },
+    { id: "6", name: "Freeware Project", subfolders: [] },
+    { id: "7", name: "Affiliate project", subfolders: [] },
   ]);
   const [selectedFolderId, setSelectedFolderId] = useState<string>("1");
   const handleBookmarks = (value: string) => {
@@ -108,8 +170,12 @@ const BookMark = () => {
         <div>
           {moreFolder ? (
             <>
-              <BookMarkInput value='Create new app' title='Name' />
-              <BookMarkInput value={path} title='URL' />
+              <BookMarkInput
+                value='Create new app'
+                title='Name'
+                className='h-[46px]'
+              />
+              <BookMarkInput value={path} title='URL' className='h-[46px]' />
             </>
           ) : (
             <BookMarkInput value='Create new app' title='Name' />
