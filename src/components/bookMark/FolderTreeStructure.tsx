@@ -35,15 +35,18 @@ function NavItem({
   onRename,
   edited,
 }: NavItemProps) {
-  const [isOpen, setIsOpen] = React.useState(
-    folder.id === selectedFolderId ? true : false
-  );
+  const [isOpen, setIsOpen] = React.useState(folder.id === selectedFolderId);
   const [isEditing, setIsEditing] = React.useState(edited);
   const [newName, setNewName] = React.useState(folder.name);
+  React.useEffect(() => {
+    if (folder.id === selectedFolderId) {
+      setIsOpen(true);
+    }
+  }, [folder.id, selectedFolderId]);
 
   const handleClick = () => {
     onSelect(folder.id);
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
   const handleRename = (e: React.FormEvent) => {
@@ -53,7 +56,7 @@ function NavItem({
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen}>
       <CollapsibleTrigger className='w-full' onClick={handleClick}>
         <div
           className={cn(
@@ -144,7 +147,10 @@ export function FolderTreeStructure({
     const addFolderRecursively = (folderList: Folder[]): Folder[] => {
       return folderList.map((folder) => {
         if (folder.id === parentId) {
-          return { ...folder, subfolders: [...folder.subfolders, newFolder] };
+          return {
+            ...folder,
+            subfolders: [...folder.subfolders, newFolder],
+          };
         } else if (folder.subfolders.length > 0) {
           return {
             ...folder,
@@ -156,6 +162,11 @@ export function FolderTreeStructure({
     };
 
     setFolders(addFolderRecursively(folders));
+
+    // Automatically open the parent folder if it was closed
+    if (parentId === selectedFolderId) {
+      setSelectedFolderId(parentId); // Ensure parent is selected
+    }
   };
 
   const handleRename = (folderId: string, newName: string) => {

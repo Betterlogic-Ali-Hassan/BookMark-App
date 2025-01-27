@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import type { Folder, BookMarkProps } from "../../../types/Bookmark";
 import BookMarkInput from "./BookMarkInput";
@@ -8,6 +8,7 @@ import BookmarkSelect from "./BookMarkSelect";
 import Header from "./Header";
 import Footer from "./Footer";
 import { initialFoldersData } from "../../../constant/foldersData";
+import { FolderTreeStructure } from "./FolderTreeStructure";
 
 const BookMark: React.FC<BookMarkProps> = ({
   initialFolders = initialFoldersData,
@@ -121,6 +122,13 @@ const BookMark: React.FC<BookMarkProps> = ({
           handleAddFolder={handleAddFolder}
           setMoreFolder={setMoreFolder}
           handleRemove={handleRemove}
+        />
+        <FolderTreeStructure
+          edited={edited}
+          folders={folders}
+          setFolders={setFolders}
+          selectedFolderId={selectedFolderId}
+          setSelectedFolderId={setSelectedFolderId}
         />
       </div>
     </div>
