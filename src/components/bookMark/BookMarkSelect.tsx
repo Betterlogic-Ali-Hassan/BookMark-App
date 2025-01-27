@@ -115,7 +115,7 @@ const BookmarkSelect = ({
           </Popover>
         </div>
       )}
-      <div className='flex items-center gap-2 mb-4 mt-3 flex-wrap'>
+      <div className='flex items-center gap-2 mb-7 mt-3 flex-wrap'>
         {bookmarks &&
           bookmarks.map((bookmark, i) => (
             <span
