@@ -24,6 +24,9 @@ const BookMark: React.FC = () => {
   const [openFolderId, setOpenFolderId] = useState(false); // Track open folder
   const [data, setData] = React.useState<TreeNode[]>(initialFoldersData);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [editingFolderId, setEditingFolderId] = React.useState<string | null>(
+    null
+  );
   const handleBookmarks = useCallback((value: string) => {
     setBookmarks((prev) => (!prev.includes(value) ? [...prev, value] : prev));
   }, []);
@@ -45,15 +48,15 @@ const BookMark: React.FC = () => {
   }, []);
   const addNewFolder = () => {
     const newFolder: TreeNode = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: String(Date.now()),
       name: "New Folder",
       children: [],
       isOpen: false,
-      isEditing: true,
     };
 
     if (!selectedId) {
       setData([...data, newFolder]);
+      setEditingFolderId(newFolder.id);
       return;
     }
 
@@ -64,6 +67,7 @@ const BookMark: React.FC = () => {
             ...node,
             children: [...(node.children || []), newFolder],
             isOpen: true,
+            isEditing: false,
           };
         }
         if (node.children) {
@@ -77,6 +81,7 @@ const BookMark: React.FC = () => {
     };
 
     setData(addToChildren(data));
+    setEditingFolderId(newFolder.id);
   };
 
   return (
@@ -99,6 +104,8 @@ const BookMark: React.FC = () => {
           )}
           <BookmarkSelect
             {...{
+              editingFolderId,
+              setEditingFolderId,
               data,
               selectedId,
               setSelectedId,

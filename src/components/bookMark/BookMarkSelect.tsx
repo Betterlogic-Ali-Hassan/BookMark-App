@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { bookmarkData } from "../../../constant/BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
 import { cn } from "@/lib/utils";
-import { FolderTree } from "./tree";
+import { FolderTree } from "./FoldertreeView";
 interface TreeNode {
   id: string;
   name: string;
@@ -28,6 +28,8 @@ interface TBookmarkProps {
   selectedId: string | null;
   data: TreeNode[];
   setData: (data: TreeNode[]) => void;
+  editingFolderId: string | null;
+  setEditingFolderId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const BookmarkSelect = ({
@@ -43,6 +45,8 @@ const BookmarkSelect = ({
   setSelectedId,
   setData,
   data,
+  editingFolderId,
+  setEditingFolderId,
 }: TBookmarkProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
@@ -60,6 +64,8 @@ const BookmarkSelect = ({
       {moreFolder ? (
         <>
           <FolderTree
+            editingFolderId={editingFolderId}
+            setEditingFolderId={setEditingFolderId}
             data={data}
             selectedId={selectedId}
             setSelectedId={setSelectedId}

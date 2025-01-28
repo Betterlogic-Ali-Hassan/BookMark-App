@@ -25,6 +25,8 @@ interface Props {
   selectedId: string | null;
   data: TreeNode[];
   setData: (data: TreeNode[]) => void;
+  editingFolderId: string | null;
+  setEditingFolderId: (id: string | null) => void;
 }
 
 export function FolderTree({
@@ -32,6 +34,8 @@ export function FolderTree({
   setData,
   selectedId,
   setSelectedId,
+  editingFolderId,
+  setEditingFolderId,
 }: Props) {
   const toggleFolder = (id: string) => {
     const toggleNode = (nodes: TreeNode[]): TreeNode[] => {
@@ -61,6 +65,7 @@ export function FolderTree({
       });
     };
     setData(updateName(data));
+    setEditingFolderId(null);
   };
 
   return (
@@ -75,6 +80,8 @@ export function FolderTree({
             onSelect={setSelectedId}
             onToggle={toggleFolder}
             onUpdateName={updateNodeName}
+            editingFolderId={editingFolderId}
+            setEditingFolderId={setEditingFolderId}
           />
         ))}
       </div>
@@ -89,6 +96,8 @@ interface TreeNodeProps {
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onUpdateName: (id: string, name: string) => void;
+  editingFolderId: string | null;
+  setEditingFolderId: (id: string | null) => void;
 }
 
 function TreeNode({
@@ -98,22 +107,28 @@ function TreeNode({
   onSelect,
   onToggle,
   onUpdateName,
+  editingFolderId,
+  setEditingFolderId,
 }: TreeNodeProps) {
   const hasChildren = node.children && node.children.length > 0;
-  const [isEditing, setIsEditing] = React.useState(node.isEditing);
   const [newName, setNewName] = React.useState(node.name);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (isEditing && inputRef.current) {
+    if (editingFolderId === node.id && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
-  }, [isEditing]);
+  }, [editingFolderId, node.id]);
+
+  React.useEffect(() => {
+    setNewName(node.name);
+  }, [node.name]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect(node.id);
+    setEditingFolderId(null);
     if (hasChildren) {
       onToggle(node.id);
     }
@@ -126,13 +141,13 @@ function TreeNode({
     } else {
       setNewName(node.name);
     }
-    setIsEditing(false);
+    setEditingFolderId(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setNewName(node.name);
-      setIsEditing(false);
+      setEditingFolderId(null);
     }
   };
 
@@ -154,7 +169,7 @@ function TreeNode({
               ) : (
                 <FcFolder size={18} />
               )}
-              {isEditing ? (
+              {editingFolderId === node.id ? (
                 <form className='flex-grow' onSubmit={handleNameSubmit}>
                   <Input
                     ref={inputRef}
@@ -167,8 +182,8 @@ function TreeNode({
                 </form>
               ) : (
                 <span
-                  onDoubleClick={() => setIsEditing(true)}
                   className='cursor-pointer flex-grow text-start'
+                  onDoubleClick={() => setEditingFolderId(node.id)}
                 >
                   {node.name}
                 </span>
@@ -193,6 +208,8 @@ function TreeNode({
                 onSelect={onSelect}
                 onToggle={onToggle}
                 onUpdateName={onUpdateName}
+                editingFolderId={editingFolderId}
+                setEditingFolderId={setEditingFolderId}
               />
             ))}
           </CollapsibleContent>
