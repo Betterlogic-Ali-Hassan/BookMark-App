@@ -2,9 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
@@ -14,7 +12,7 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "Node",  // Changed from 'bundler' to 'Node' for compatibility with most build tools
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -26,7 +24,20 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* Chrome extension-specific settings */
+    "types": ["chrome"],  // Include Chrome type definitions
+    "resolveJsonModule": true,  // Allow importing JSON modules
+    "esModuleInterop": true,  // Ensure compatibility with CommonJS modules
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "constant/BookMarkData.tsx"]
+  "include": [
+    "src",
+    "constant/BookMarkData.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

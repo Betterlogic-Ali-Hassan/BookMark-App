@@ -1,88 +1,44 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useContext } from "react";
 import { cn } from "@/lib/utils";
 import BookMarkInput from "./BookMarkInput";
-import BookmarkSelect from "./BookMarkSelect";
 import Header from "./Header";
 import Footer from "./Footer";
-import { initialFoldersData } from "../../../constant/foldersData";
-interface TreeNode {
-  id: string;
-  name: string;
-  children?: TreeNode[];
-  isOpen?: boolean;
-  isEditing?: boolean;
-}
+import { BookmarkContext } from "../context/BookmarkContext";
+import BookmarkSelect from "./BookMarkSelect";
+
 const BookMark: React.FC = () => {
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [selected, setSelected] = useState<string>("Bookmark bar");
-  const [path, setPath] = useState("");
-  const [openPopover, setOpenPopover] = useState(false);
-  const [moreFolder, setMoreFolder] = useState(false);
-  const [removeBookMark, setRemoveBookMark] = useState(false);
-  const [openFolderId, setOpenFolderId] = useState(false); // Track open folder
-  const [data, setData] = React.useState<TreeNode[]>(initialFoldersData);
-  const [selectedId, setSelectedId] = React.useState<string | null>(null);
-  const [editingFolderId, setEditingFolderId] = React.useState<string | null>(
-    null
-  );
-  const handleBookmarks = useCallback((value: string) => {
-    setBookmarks((prev) => (!prev.includes(value) ? [...prev, value] : prev));
-  }, []);
+  const context = useContext(BookmarkContext);
 
-  const handleRemoveBookMark = useCallback((value: string) => {
-    setBookmarks((prev) => prev.filter((item) => item !== value));
-  }, []);
+  if (!context) {
+    throw new Error("BookMark must be used within a BookmarkProvider");
+  }
 
-  const handleRemove = useCallback(() => {
-    setMoreFolder((prev) => {
-      if (prev) return false;
-      setRemoveBookMark((prevRemove) => !prevRemove);
-      return prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    setPath(window.location.href);
-  }, []);
-  const addNewFolder = () => {
-    const newFolder: TreeNode = {
-      id: String(Date.now()),
-      name: "New Folder",
-      children: [],
-      isOpen: false,
-    };
-
-    if (!selectedId) {
-      setData([...data, newFolder]);
-      setEditingFolderId(newFolder.id);
-      return;
-    }
-
-    const addToChildren = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.map((node) => {
-        if (node.id === selectedId) {
-          return {
-            ...node,
-            children: [...(node.children || []), newFolder],
-            isOpen: true,
-            isEditing: false,
-          };
-        }
-        if (node.children) {
-          return {
-            ...node,
-            children: addToChildren(node.children),
-          };
-        }
-        return node;
-      });
-    };
-
-    setData(addToChildren(data));
-    setEditingFolderId(newFolder.id);
-  };
+  const {
+    bookmarks,
+    selected,
+    path,
+    openPopover,
+    moreFolder,
+    removeBookMark,
+    openFolderId,
+    data,
+    selectedId,
+    editingFolderId, // ✅ Already here
+    setSelectedId,
+    setData,
+    setOpenPopover,
+    setSelected,
+    handleBookmarks,
+    handleRemoveBookMark,
+    addNewFolder,
+    handleRemove,
+    setMoreFolder,
+    setOpenFolderId,
+    setEditingFolderId, // ✅ Add this missing setter
+  } = context;
+  
 
   return (
     <div
@@ -92,16 +48,14 @@ const BookMark: React.FC = () => {
       )}
     >
       <Header removeBookMark={removeBookMark} />
-      <div className='p-6 pt-0 flex flex-col justify-between'>
+      <div className="p-6 pt-0 flex flex-col justify-between">
         <div>
           <BookMarkInput
-            value='Create new app'
-            title='Name'
+            value="Create new app"
+            title="Name"
             className={cn(moreFolder && "h-[46px]")}
           />
-          {moreFolder && (
-            <BookMarkInput value={path} title='URL' className='h-[46px]' />
-          )}
+          {moreFolder && <BookMarkInput value={path} title="URL" className="h-[46px]" />}
           <BookmarkSelect
             {...{
               editingFolderId,
