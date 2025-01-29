@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { FcFolder, FcOpenedFolder } from "react-icons/fc";
-
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,32 +37,38 @@ export function FolderTree({
   editingFolderId,
   setEditingFolderId,
 }: Props) {
+  const [isInitialized, setIsInitialized] = useState(false); // ✅ Track if the initial selection has been set
+
+  // ✅ Always select "Bookmarks Bar" initially, but allow changes after that
+  useEffect(() => {
+    if (!isInitialized && data.length > 0) {
+      const bookmarksBar = data.find((folder) => folder.name.toLowerCase() === "bookmarks bar");
+      if (bookmarksBar && !selectedId) {
+        console.log("Selecting Bookmarks Bar initially:", bookmarksBar.id);
+        setSelectedId(bookmarksBar.id);
+        setIsInitialized(true); // ✅ Mark as initialized so it doesn't override user selection
+      }
+    }
+  }, [data, selectedId, isInitialized, setSelectedId]);
+
   const toggleFolder = (id: string) => {
     const toggleNode = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.map((node) => {
-        if (node.id === id) {
-          return { ...node, isOpen: !node.isOpen };
-        }
-        if (node.children) {
-          return { ...node, children: toggleNode(node.children) };
-        }
-        return node;
-      });
+      return nodes.map((node) => ({
+        ...node,
+        isOpen: node.id === id ? !node.isOpen : node.isOpen,
+        children: node.children ? toggleNode(node.children) : node.children,
+      }));
     };
     setData(toggleNode(data));
   };
 
   const updateNodeName = (id: string, newName: string) => {
     const updateName = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.map((node) => {
-        if (node.id === id) {
-          return { ...node, name: newName };
-        }
-        if (node.children) {
-          return { ...node, children: updateName(node.children) };
-        }
-        return node;
-      });
+      return nodes.map((node) => ({
+        ...node,
+        name: node.id === id ? newName : node.name,
+        children: node.children ? updateName(node.children) : node.children,
+      }));
     };
     setData(updateName(data));
     setEditingFolderId(null);
@@ -127,7 +133,7 @@ function TreeNode({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelect(node.id);
+    onSelect(node.id); // ✅ Now allows user to change selection after initial
     setEditingFolderId(null);
     if (hasChildren) {
       onToggle(node.id);
@@ -164,11 +170,7 @@ function TreeNode({
             onClick={handleClick}
           >
             <div className='flex flex-grow items-center gap-3'>
-              {node.isOpen ? (
-                <FcOpenedFolder size={18} />
-              ) : (
-                <FcFolder size={18} />
-              )}
+              {node.isOpen ? <FcOpenedFolder size={18} /> : <FcFolder size={18} />}
               {editingFolderId === node.id ? (
                 <form className='flex-grow' onSubmit={handleNameSubmit}>
                   <Input

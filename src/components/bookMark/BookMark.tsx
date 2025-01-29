@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import BookMarkInput from "./BookMarkInput";
 import Header from "./Header";
@@ -18,14 +18,14 @@ const BookMark: React.FC = () => {
   const {
     bookmarks,
     selected,
-    path,
+    // path,
     openPopover,
     moreFolder,
     removeBookMark,
     openFolderId,
     data,
     selectedId,
-    editingFolderId, // ✅ Already here
+    editingFolderId,
     setSelectedId,
     setData,
     setOpenPopover,
@@ -33,12 +33,24 @@ const BookMark: React.FC = () => {
     handleBookmarks,
     handleRemoveBookMark,
     addNewFolder,
-    handleRemove,
+    // handleRemove,
     setMoreFolder,
     setOpenFolderId,
-    setEditingFolderId, // ✅ Add this missing setter
+    setEditingFolderId,
   } = context;
-  
+
+  // ✅ NEW: Manage pinned folders state
+  const [pinnedFolders, setPinnedFolders] = useState<string[]>([]);
+
+  // ✅ NEW: Function to pin a folder
+  const handlePinFolder = (folderId: string) => {
+    setPinnedFolders((prev) => (!prev.includes(folderId) ? [...prev, folderId] : prev));
+  };
+
+  // ✅ NEW: Function to unpin a folder
+  const handleUnpinFolder = (folderId: string) => {
+    setPinnedFolders((prev) => prev.filter((id) => id !== folderId));
+  };
 
   return (
     <div
@@ -51,11 +63,11 @@ const BookMark: React.FC = () => {
       <div className="p-6 pt-0 flex flex-col justify-between">
         <div>
           <BookMarkInput
-            value="Create new app"
-            title="Name"
+            // value="Create new app"
+            // title="Name"
             className={cn(moreFolder && "h-[46px]")}
           />
-          {moreFolder && <BookMarkInput value={path} title="URL" className="h-[46px]" />}
+          {/* {moreFolder && <BookMarkInput value={path} title="URL" className="h-[46px]" />} */}
           <BookmarkSelect
             {...{
               editingFolderId,
@@ -74,6 +86,10 @@ const BookMark: React.FC = () => {
               moreFolder,
               openFolderId,
               setOpenFolderId,
+              // ✅ NEW: Pass pinned folder functionality
+              pinnedFolders,
+              handlePinFolder,
+              handleUnpinFolder,
             }}
           />
         </div>
@@ -81,7 +97,7 @@ const BookMark: React.FC = () => {
           moreFolder={moreFolder}
           handleAddFolder={addNewFolder}
           setMoreFolder={setMoreFolder}
-          handleRemove={handleRemove}
+          // handleRemove={handleRemove}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import {
   Popover,
@@ -6,21 +6,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { bookmarkData } from "../../../constant/BookMarkData";
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
 import { cn } from "@/lib/utils";
 import { FolderTree } from "./FoldertreeView";
+
 interface TreeNode {
   id: string;
   name: string;
   children?: TreeNode[];
 }
+
 interface TBookmarkProps {
   selectChange: (value: string) => void;
   selected: string;
   bookmarks: string[];
   handleBookmarks: (value: string) => void;
   handleRemoveBookMark: (value: string) => void;
+  pinnedFolders: string[]; // Holds pinned folder IDs
+  handlePinFolder: (value: string) => void;
+  handleUnpinFolder: (value: string) => void;
   setOpenPopover: React.Dispatch<React.SetStateAction<boolean>>;
   openPopover: boolean;
   moreFolder: boolean;
@@ -35,9 +39,12 @@ interface TBookmarkProps {
 const BookmarkSelect = ({
   selected,
   selectChange,
-  bookmarks,
-  handleBookmarks,
-  handleRemoveBookMark,
+  // bookmarks,
+  // handleBookmarks,
+  // handleRemoveBookMark,
+  pinnedFolders,
+  handlePinFolder,
+  handleUnpinFolder,
   setOpenPopover,
   openPopover,
   moreFolder,
@@ -49,12 +56,46 @@ const BookmarkSelect = ({
   setEditingFolderId,
 }: TBookmarkProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
+  const [chromeFolders, setChromeFolders] = useState<TreeNode[]>([]);
+  const [activeBookmark, setActiveBookmark] = useState<string | null>(null); // ✅ Added missing state
 
-  const filterData = bookmarkData.filter((bookmark) =>
-    bookmark.toLowerCase().includes(searchTerm.toLowerCase())
+  /** Fetch Chrome bookmark folders dynamically */
+  useEffect(() => {
+    if (chrome?.bookmarks) {
+      chrome.bookmarks.getTree((bookmarkTreeNodes) => {
+        const extractFolders = (nodes: chrome.bookmarks.BookmarkTreeNode[]): TreeNode[] => {
+          return nodes
+            .filter((node) => node.children) // Keep only folders
+            .map((folder) => ({
+              id: folder.id,
+              name: folder.title,
+              children: folder.children ? extractFolders(folder.children) : [],
+            }));
+        };
+
+        const fetchedFolders = extractFolders(bookmarkTreeNodes[0].children || []);
+        setChromeFolders(fetchedFolders);
+      });
+    }
+  }, []);
+
+  /** Flatten folder tree for search */
+  const flattenFolders = (folders: TreeNode[]): TreeNode[] => {
+    return folders.reduce<TreeNode[]>((acc, folder) => {
+      acc.push({ id: folder.id, name: folder.name });
+      if (folder.children) acc = acc.concat(flattenFolders(folder.children));
+      return acc;
+    }, []);
+  };
+
+  const allFolders = flattenFolders(chromeFolders);
+
+  /** Filter folders based on search */
+  const filterData = allFolders.filter((folder) =>
+    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  /** ✅ Added missing handleSearch function */
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -100,17 +141,17 @@ const BookmarkSelect = ({
                     key={index}
                     className='flex items-center justify-between relative w-full cursor-pointer hover:bg-[#f2f2f2] rounded-sm py-1.5 px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 group '
                     onClick={() => {
-                      selectChange(bookmark);
+                      selectChange(bookmark.name);
                       setOpenPopover(false);
                     }}
                   >
-                    <span>{bookmark}</span>
+                    <span>{bookmark.name}</span>
                     <span>
-                      {bookmarks.includes(bookmark) ? (
+                      {pinnedFolders.includes(bookmark.id) ? (
                         <span
                           className='z-50 hover:text-blue-700 '
                           onClick={(e) => {
-                            handleRemoveBookMark(bookmark);
+                            handleUnpinFolder(bookmark.id);
                             e.stopPropagation();
                           }}
                         >
@@ -120,7 +161,7 @@ const BookmarkSelect = ({
                         <span
                           className='z-50 hover:text-blue-700 opacity-0 group-hover:opacity-100'
                           onClick={(e) => {
-                            handleBookmarks(bookmark);
+                            handlePinFolder(bookmark.id);
                             e.stopPropagation();
                           }}
                         >
@@ -141,22 +182,24 @@ const BookmarkSelect = ({
         </div>
       )}
       <div className='flex items-center gap-2 mb-6 mt-3 flex-wrap'>
-        {bookmarks &&
-          bookmarks.map((bookmark, i) => (
+        {pinnedFolders.map((folderId, i) => {
+          const folder = allFolders.find((f) => f.id === folderId);
+          return folder ? (
             <span
               key={i}
               onClick={() => {
-                setActiveBookmark(bookmark);
-                selectChange(bookmark);
+                setActiveBookmark(folder.name);
+                selectChange(folder.name);
               }}
               className={cn(
                 "p-2 px-3  hover:bg-[#E5E5E5] rounded-full text-xs font-medium cursor-pointer bg-[#f2f2f2] border-2 border-transparent ",
-                activeBookmark === bookmark && " border-[#ccc] border-dashed"
+                activeBookmark === folder.name && " border-[#ccc] border-dashed"
               )}
             >
-              {bookmark}
+              {folder.name}
             </span>
-          ))}
+          ) : null;
+        })}
       </div>
     </div>
   );
