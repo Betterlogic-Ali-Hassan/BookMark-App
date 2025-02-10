@@ -7,7 +7,7 @@ const App = () => {
     const port = chrome.runtime.connect({ name: "popup" });
   
     return () => {
-      port.disconnect(); // ✅ This will trigger "OFF" when the popup is closed
+      port.disconnect(); //  This will trigger "OFF" when the popup is closed
     };
   }, []);
   

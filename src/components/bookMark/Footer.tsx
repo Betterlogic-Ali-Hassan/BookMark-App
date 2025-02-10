@@ -2,58 +2,47 @@ import { useContext } from "react";
 import { BookmarkContext } from "../context/BookmarkContext";
 import BookMarkBtn from "./BookMarksBtn";
 
-interface FooterProps {
-  moreFolder: boolean;
-  handleAddFolder: () => void;
-  setMoreFolder: (value: boolean) => void;
-}
 
-const Footer: React.FC<FooterProps> = ({
-  moreFolder,
-  handleAddFolder,
-  setMoreFolder,
-}) => {
+const Footer = () => {
   const context = useContext(BookmarkContext);
 
   if (!context) {
     throw new Error("Footer must be used within a BookmarkProvider");
   }
 
-  /** ✅ Send message to background script to remove the bookmark for the current tab */
-  const handleRemoveClick = () => {
-    chrome.runtime.sendMessage({ action: "removeBookmark" }, (response) => {
-      if (response?.status === "success") {
-        console.log("Bookmark successfully removed!");
-      } else {
-        console.error("Failed to remove bookmark:", response?.message);
-      }
-    });
-  };
+
+  const { handleRemove, moreFolder, addNewFolder, setMoreFolder, handleDone } = context;
+
+
+  const handleCancel = () => {
+    window.close();
+  }
 
   return (
-    <div className='flex items-center justify-between mt-auto'>
+    <div className='flex items-center justify-between mt-auto fixed bottom-6 w-[87%] bg-white'>
       <BookMarkBtn
         icon={moreFolder ? <FolderIcon /> : <MoreIcon />}
         text={moreFolder ? "New folder" : "More"}
-        onClick={moreFolder ? handleAddFolder : () => setMoreFolder(true)}
+        onClick={moreFolder ? addNewFolder : () => setMoreFolder(true)}
       />
       <div className='flex items-center gap-3'>
         <BookMarkBtn
           icon={<RemoveIcon />}
           text={moreFolder ? "Cancel" : "Remove"}
-          onClick={handleRemoveClick} // ✅ Calls remove function
+          onClick={moreFolder ? handleCancel : handleRemove}
         />
         <BookMarkBtn
           icon={moreFolder ? <SaveIcon /> : <DoneIcon />}
           text={moreFolder ? "Save" : "Done"}
           className='bg-black text-white hover:bg-black/80 hover:text-white px-4'
+          onClick={handleDone}
         />
       </div>
     </div>
   );
 };
 
-// ✅ Keep all SVG icons the same
+//  Keep all SVG icons the same
 const FolderIcon = () => (
   <svg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='#000000' className='mb-0.5'>
     <path d='M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z' />

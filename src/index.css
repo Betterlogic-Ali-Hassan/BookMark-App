@@ -69,6 +69,19 @@ body {
   }
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scroll);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cccc;
+  height: 40px;
+}
+
 .scroll-bar::-webkit-scrollbar {
   width: 4px;
 }

@@ -24,7 +24,7 @@ interface Props {
   setSelectedId: (id: string | null) => void;
   selectedId: string | null;
   data: TreeNode[];
-  setData: (data: TreeNode[]) => void;
+  setData: React.Dispatch<React.SetStateAction<TreeNode[]>>;
   editingFolderId: string | null;
   setEditingFolderId: (id: string | null) => void;
 }
@@ -37,45 +37,65 @@ export function FolderTree({
   editingFolderId,
   setEditingFolderId,
 }: Props) {
-  const [isInitialized, setIsInitialized] = useState(false); // ✅ Track if the initial selection has been set
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // ✅ Always select "Bookmarks Bar" initially, but allow changes after that
+  //  Always select "Bookmarks Bar" initially, but allow user changes
   useEffect(() => {
     if (!isInitialized && data.length > 0) {
       const bookmarksBar = data.find((folder) => folder.name.toLowerCase() === "bookmarks bar");
       if (bookmarksBar && !selectedId) {
         console.log("Selecting Bookmarks Bar initially:", bookmarksBar.id);
         setSelectedId(bookmarksBar.id);
-        setIsInitialized(true); // ✅ Mark as initialized so it doesn't override user selection
+        setIsInitialized(true);
       }
     }
   }, [data, selectedId, isInitialized, setSelectedId]);
 
   const toggleFolder = (id: string) => {
-    const toggleNode = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.map((node) => ({
-        ...node,
-        isOpen: node.id === id ? !node.isOpen : node.isOpen,
-        children: node.children ? toggleNode(node.children) : node.children,
-      }));
-    };
-    setData(toggleNode(data));
+    setData((prevData) => toggleFolderState(prevData, id));
+  };
+
+  const toggleFolderState = (nodes: TreeNode[], id: string): TreeNode[] => {
+    return nodes.map((node) => ({
+      ...node,
+      isOpen: node.id === id ? !node.isOpen : node.isOpen,
+      children: node.children ? toggleFolderState(node.children, id) : node.children,
+    }));
   };
 
   const updateNodeName = (id: string, newName: string) => {
-    const updateName = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.map((node) => ({
-        ...node,
-        name: node.id === id ? newName : node.name,
-        children: node.children ? updateName(node.children) : node.children,
-      }));
-    };
-    setData(updateName(data));
+    if (!chrome || !chrome.bookmarks) {
+      console.warn("Chrome Bookmarks API is not available.");
+      return;
+    }
+  
+    chrome.bookmarks.update(id, { title: newName }, (updatedBookmark) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error updating folder name:", chrome.runtime.lastError.message);
+        return;
+      }
+  
+      console.log("Folder name updated in Chrome Bookmarks:", updatedBookmark);
+  
+      //  Update local state to reflect the new folder name
+      setData((prevData) => updateNodeNameState(prevData, id, newName));
+    });
+  
     setEditingFolderId(null);
   };
+  
+  // Helper function to update the folder name in the local state
+  const updateNodeNameState = (nodes: TreeNode[], id: string, newName: string): TreeNode[] => {
+    return nodes.map((node) => ({
+      ...node,
+      name: node.id === id ? newName : node.name,
+      children: node.children ? updateNodeNameState(node.children, id, newName) : node.children,
+    }));
+  };
+  
 
   return (
-    <div className='flex max-h-[350px] w-full flex-col gap-2 overflow-y-auto scroll-bar rounded-md border border-[#ccc] bg-background px-2 py-3 mt-6 mb-4'>
+    <div className='flex mb-4 max-h-[250px] w-full flex-col gap-2 overflow-y-auto scroll-bar rounded-md border border-[#ccc] bg-background px-2 py-3 mt-6'>
       <div>
         {data.map((node) => (
           <TreeNode
@@ -117,23 +137,24 @@ function TreeNode({
   setEditingFolderId,
 }: TreeNodeProps) {
   const hasChildren = node.children && node.children.length > 0;
-  const [newName, setNewName] = React.useState(node.name);
+  const [newName, setNewName] = useState(node.name);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingFolderId === node.id && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
   }, [editingFolderId, node.id]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNewName(node.name);
   }, [node.name]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelect(node.id); // ✅ Now allows user to change selection after initial
+    console.log(`Folder selected: ${node.name} (ID: ${node.id})`);
+    onSelect(node.id);
     setEditingFolderId(null);
     if (hasChildren) {
       onToggle(node.id);

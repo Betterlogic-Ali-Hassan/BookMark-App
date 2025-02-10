@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import BookMarkInput from "./BookMarkInput";
 import Header from "./Header";
 import Footer from "./Footer";
 import { BookmarkContext } from "../context/BookmarkContext";
 import BookmarkSelect from "./BookMarkSelect";
+
+interface TreeNode {
+  id: string;
+  name: string;
+  children?: TreeNode[];
+  isOpen?: boolean;
+  isEditing?: boolean;
+}
 
 const BookMark: React.FC = () => {
   const context = useContext(BookmarkContext);
@@ -18,7 +26,6 @@ const BookMark: React.FC = () => {
   const {
     bookmarks,
     selected,
-    // path,
     openPopover,
     moreFolder,
     removeBookMark,
@@ -31,43 +38,91 @@ const BookMark: React.FC = () => {
     setOpenPopover,
     setSelected,
     handleBookmarks,
-    handleRemoveBookMark,
-    addNewFolder,
-    // handleRemove,
-    setMoreFolder,
     setOpenFolderId,
     setEditingFolderId,
   } = context;
 
-  // ✅ NEW: Manage pinned folders state
+  //  Persistent Pinned Folders State
   const [pinnedFolders, setPinnedFolders] = useState<string[]>([]);
 
-  // ✅ NEW: Function to pin a folder
-  const handlePinFolder = (folderId: string) => {
-    setPinnedFolders((prev) => (!prev.includes(folderId) ? [...prev, folderId] : prev));
-  };
+  //  Load pinned folders from Chrome Storage
+  useEffect(() => {
+    if (chrome?.storage) {
+      chrome.storage.local.get(["pinnedFolders"], (result) => {
+        if (result.pinnedFolders) {
+          setPinnedFolders(result.pinnedFolders);
+          console.log("Loaded pinned folders:", result.pinnedFolders);
+        }
+      });
+    }
+  }, []);
 
-  // ✅ NEW: Function to unpin a folder
-  const handleUnpinFolder = (folderId: string) => {
-    setPinnedFolders((prev) => prev.filter((id) => id !== folderId));
+  //  Function to pin a folder
+  const handlePinFolder = (folderId: string) => {
+    setPinnedFolders((prev) => {
+      const updated = prev.includes(folderId) ? prev : [...prev, folderId];
+  
+      //  Save pinned folders to Chrome Storage
+      chrome.storage.local.set({ pinnedFolders: updated });
+  
+      //  Open the folder in FolderTree
+      setData((prevData) => {
+        const toggleOpenState = (nodes: TreeNode[]): TreeNode[] => {
+          return nodes.map((node) => ({
+            ...node,
+            isOpen: node.id === folderId ? true : node.isOpen, //  Ensure it opens
+            children: node.children ? toggleOpenState(node.children) : node.children,
+          }));
+        };
+        return toggleOpenState(prevData);
+      });
+  
+      return updated;
+    });
+  
+    //  Also update `selectedId` to make sure the pinned folder is selected
+    setSelectedId(folderId);
   };
+  
+  
+
+  //  Function to unpin a folder
+  const handleUnpinFolder = (folderId: string) => {
+    setPinnedFolders((prev) => {
+      const updated = prev.filter((id) => id !== folderId);
+  
+      //  Save updated pinned folders to Chrome Storage
+      chrome.storage.local.set({ pinnedFolders: updated });
+  
+      //  Close the folder in FolderTree
+      setData((prevData) => {
+        const toggleCloseState = (nodes: TreeNode[]): TreeNode[] => {
+          return nodes.map((node) => ({
+            ...node,
+            isOpen: node.id === folderId ? false : node.isOpen, //  Ensure it closes
+            children: node.children ? toggleCloseState(node.children) : node.children,
+          }));
+        };
+        return toggleCloseState(prevData);
+      });
+  
+      return updated;
+    });
+  };
+  
+  
 
   return (
     <div
       className={cn(
-        "high-shadow bg-card rounded-lg border w-[380px] relative h-auto",
+        "high-shadow bg-card rounded-lg border w-[380px] relative h-auto scroll-bar",
         openPopover && "h-[450px]"
       )}
     >
       <Header removeBookMark={removeBookMark} />
       <div className="p-6 pt-0 flex flex-col justify-between">
         <div>
-          <BookMarkInput
-            // value="Create new app"
-            // title="Name"
-            className={cn(moreFolder && "h-[46px]")}
-          />
-          {/* {moreFolder && <BookMarkInput value={path} title="URL" className="h-[46px]" />} */}
+          <BookMarkInput className={cn(moreFolder && "h-[46px]")} />
           <BookmarkSelect
             {...{
               editingFolderId,
@@ -82,23 +137,16 @@ const BookMark: React.FC = () => {
               selectChange: setSelected,
               handleBookmarks,
               bookmarks,
-              handleRemoveBookMark,
               moreFolder,
               openFolderId,
               setOpenFolderId,
-              // ✅ NEW: Pass pinned folder functionality
               pinnedFolders,
               handlePinFolder,
               handleUnpinFolder,
             }}
           />
         </div>
-        <Footer
-          moreFolder={moreFolder}
-          handleAddFolder={addNewFolder}
-          setMoreFolder={setMoreFolder}
-          // handleRemove={handleRemove}
-        />
+        <Footer />
       </div>
     </div>
   );
